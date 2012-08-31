@@ -18,6 +18,10 @@
     $.fn.lazyload = function(options) {
         var elements = this;
         var $container;
+        var eventHandler = function(event){
+        	update();
+        };
+        
         var settings = {
             threshold       : 0,
             failure_limit   : 0,
@@ -32,41 +36,34 @@
 
         function update() {
             var counter = 0;
-            //the order of elements will make the elements after the first invisible element  
-            //all invisible.but in some case such as my side bar is so tall that i have invisible
-            //element in it and it's location will appear above my main content.and that will make 
-            //all my imgs in main content invisible.so that's the need to sort elements in update 
-            elements.sort(function(a, b){
-              	var abelow = $.belowthefold(a, settings);
-	          	var aright = $.rightoffold(a, settings);
-	          	var bbelow = $.belowthefold(b, settings);
-	          	var bright = $.rightoffold(b, settings);
-	          	if( !abelow && !aright && !bbelow && !bright){
-	            	return 0;
-	            } else if (!abelow && !aright && (bbelow || bright)){
-	            	return -1;
-	            } else if (!bbelow && !bright && (abelow || aright)){
-	            	return 1;
-	            } else {
-	            	return 0;
-	            }
-	        });
-            elements.each(function() {
-                var $this = $(this);
+	    /*
+	     when scroll event or resize event is trigger,if all these img is appear,it's no
+	     long to trigger update anymore.so iterator every img if it has show up that remove
+	     it from the elements array.
+	     if the elements array is empty,unbind the update listener  
+	     */
+            if (elements.length < 1 && $container) {
+            	//remove bind event due to the elements is null and have no element to appear
+            	$container.unbind(settings.event, eventHandler);
+            	$window.unbind("resize", eventHandler);
+	    }
+            elements = $.grep(elements, function(el, index) {
+                var $this = $(el);
                 if (settings.skip_invisible && !$this.is(":visible")) {
-                    return;
+                    return false;
                 }
-                if ($.abovethetop(this, settings) ||
-                    $.leftofbegin(this, settings)) {
-                        /* Nothing. */
-                } else if (!$.belowthefold(this, settings) &&
-                    !$.rightoffold(this, settings)) {
+                if ($.abovethetop(el, settings) ||
+                    $.leftofbegin(el, settings)) {
+                    	return true;
+                } else if (!$.belowthefold(el, settings) &&
+                    !$.rightoffold(el, settings)) {
                         $this.trigger("appear");
                 } else {
                     if (++counter > settings.failure_limit) {
-                        return false;
+                        return true;
                     }
                 }
+                return false;
             });
 
         }
@@ -91,9 +88,7 @@
 
         /* Fire one scroll event per scroll. Not one scroll event per image. */
         if (0 === settings.event.indexOf("scroll")) {
-            $container.bind(settings.event, function(event) {
-                return update();
-            });
+            $container.bind(settings.event, eventHandler);
         }
 
         this.each(function() {
@@ -144,8 +139,28 @@
         });
 
         /* Check if something appears when window is resized. */
-        $window.bind("resize", function(event) {
-            update();
+        $window.bind("resize", eventHandler);
+		
+	/* 
+	the order of elements will make the elements after the first invisible element  
+        all invisible.but in some case such as my side bar is so tall that i have invisible
+        element in it and it's location will appear above my main content.and that will make 
+        all my imgs in main content invisible.so that's the need to sort elements af the begin 
+	*/
+	elements.sort(function(a, b) {
+		var abelow = $.belowthefold(a, settings);
+		var aright = $.rightoffold(a, settings);
+		var bbelow = $.belowthefold(b, settings);
+		var bright = $.rightoffold(b, settings);
+		if (!abelow && !aright && !bbelow && !bright) {
+			return 0;
+		} else if (!abelow && !aright && (bbelow || bright)) {
+			return -1;
+		} else if (!bbelow && !bright && (abelow || aright)) {
+			return 1;
+		} else {
+			return 0;
+		}
         });
 
         /* Force initial check if images should appear. */
