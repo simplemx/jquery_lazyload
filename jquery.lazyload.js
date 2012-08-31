@@ -32,7 +32,25 @@
 
         function update() {
             var counter = 0;
-      
+            //the order of elements will make the elements after the first invisible element  
+            //all invisible.but in some case such as my side bar is so tall that i have invisible
+            //element in it and it's location will appear above my main content.and that will make 
+            //all my imgs in main content invisible.so that's the need to sort elements in update 
+            elements.sort(function(a, b){
+              	var abelow = $.belowthefold(a, settings);
+	          	var aright = $.rightoffold(a, settings);
+	          	var bbelow = $.belowthefold(b, settings);
+	          	var bright = $.rightoffold(b, settings);
+	          	if( !abelow && !aright && !bbelow && !bright){
+	            	return 0;
+	            } else if (!abelow && !aright && (bbelow || bright)){
+	            	return -1;
+	            } else if (!bbelow && !bright && (abelow || aright)){
+	            	return 1;
+	            } else {
+	            	return 0;
+	            }
+	        });
             elements.each(function() {
                 var $this = $(this);
                 if (settings.skip_invisible && !$this.is(":visible")) {
