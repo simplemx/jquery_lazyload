@@ -1,5 +1,5 @@
 h3. My changelog:
 
-* add sort elements logic in at first
-* remove img from elements when it had show up because of it don't need appear anymore
-* unbind the update in resize and scroll when there is no img in elements
+* add sort elements logic at first
+* remove img from elements when it had show up because it don't need appear anymore
+* unbind the update event handler in resize and scroll when there is no img in elements
