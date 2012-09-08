@@ -45,7 +45,6 @@
             	//remove bind event due to the elements is null and have no element to appear
             	$container.unbind(settings.event, eventHandler);
             	$window.unbind("resize", eventHandler);
-		return;
 	    }
             elements = $($.grep(elements, function(el, index) {
                 var $this = $(el);
